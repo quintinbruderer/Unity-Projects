@@ -13,11 +13,13 @@ public class player : MonoBehaviour
     public int topSpeed;
     public int jump;
     private bool facingRight;
+    private bool inAir;
 
     // Start is called before the first frame update
     void Start()
     {
         facingRight = true;
+        inAir = false;
         rb2d = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         trans = GetComponent<Transform>();
@@ -32,18 +34,30 @@ public class player : MonoBehaviour
         
     }
 
+    public void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Tiles")
+        {
+            inAir = false;
+        }
+        if (collision.gameObject.tag == "Finish")
+        {
+            //you win
+        }
+    }
+
     private void playerMovement(float horizontal)
     {
-        if (rb2d.velocity.y > 0.1f || rb2d.velocity.y < -0.2f) {
+        if (inAir) //rb2d.velocity.y > 0.1f || rb2d.velocity.y < -0.2f
+        {
             rb2d.velocity = new Vector2(horizontal * topSpeed * 0.5f, rb2d.velocity.y);
-            anim.SetTrigger("idle"); // change this so no running
-            // jumping true stuff
+            anim.SetTrigger("idle");
         }
         else
         {
             rb2d.velocity = new Vector2(horizontal * topSpeed, rb2d.velocity.y);
 
-            if (rb2d.velocity.x > 0.5f || rb2d.velocity.x < -0.5f) // and not jumping
+            if (rb2d.velocity.x > 0.5f  && !inAir || rb2d.velocity.x < -0.5f && !inAir)
             {
                 anim.SetTrigger("run");
             }
@@ -53,9 +67,10 @@ public class player : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && !inAir)
         {
             rb2d.AddForce(new Vector2(0, jump), ForceMode2D.Impulse);
+            inAir = true;
         }
     }
 
